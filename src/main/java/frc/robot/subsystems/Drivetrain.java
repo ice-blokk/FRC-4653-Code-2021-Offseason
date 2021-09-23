@@ -51,6 +51,12 @@ public class Drivetrain extends SubsystemBase {
 		.setKinematics(kDriveKinematics)
 		.addConstraint(autoVoltageConstraint);
 	
+	TrajectoryConfig configSlow = new TrajectoryConfig(
+		1, 
+		1)
+		.setKinematics(kDriveKinematics)
+		.addConstraint(autoVoltageConstraint);
+
 	TrajectoryConfig configFast = new TrajectoryConfig(
 		3, 
 		3)
@@ -216,6 +222,10 @@ public class Drivetrain extends SubsystemBase {
 		return config;
 	}
 
+	public TrajectoryConfig getSlowConfig() {
+		return configSlow;
+	}
+
 	public TrajectoryConfig getFastConfig() {
 		return configFast;
 	}
@@ -272,16 +282,6 @@ public class Drivetrain extends SubsystemBase {
 
 		SmartDashboard.putNumber("Encoder average", getEncoderAverage());
 
-		double xCoord = getCurrentPose().getX();
-
-		boolean inVeryFrontZone = xCoord > -.5 && xCoord < 1;
-		boolean inFrontZone = xCoord > 1 && xCoord < 1.7;
-		boolean inMidZone = xCoord > 1.7 && xCoord < 3.2;
-		boolean inBackZone = xCoord > 3.2 && xCoord < 5;
-
-		SmartDashboard.putBoolean("In Green Zone", inVeryFrontZone);
-		SmartDashboard.putBoolean("In Yellow Zone", inFrontZone);
-		SmartDashboard.putBoolean("In Blue Zone", inMidZone);
-		SmartDashboard.putBoolean("In Red Zone", inBackZone);
+		SmartDashboard.putNumber("Gyro Degrees", getAngle());
 	}
 }	
