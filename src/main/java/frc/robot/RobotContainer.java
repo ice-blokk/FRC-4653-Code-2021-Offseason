@@ -1,21 +1,32 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.command.InstantCommand;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.BasicShoot;
 import frc.robot.commands.LimelightAngle;
 import frc.robot.commands.LimelightDrive;
 import frc.robot.commands.LimelightShoot;
 import frc.robot.commands.ResetStuff;
 import frc.robot.commands.SetDartToAngle;
+import frc.robot.commands.autocommands.AutoDrive;
+import frc.robot.commands.autocommands.AutoSetAngler;
 import frc.robot.commands.autocommands.AutoSetWithinFramePerimeter;
+import frc.robot.commands.autocommands.SixBallTrenchAuto;
 import frc.robot.commands.autopaths.TestPath;
 import frc.robot.commands.defaultcommands.DefaultAngler;
 import frc.robot.commands.defaultcommands.DefaultCannon;
@@ -77,7 +88,7 @@ public class RobotContainer {
 									drivetrain));   
 		intake.setDefaultCommand(new DefaultIntake(() -> xbox.getXButton(), () -> xbox.getBButton(),
 												   () -> xbox.getYButton(), () -> xbox.getAButton(), intake));
-		cannon.setDefaultCommand(new DefaultCannon(() -> xbox.getBackButton(), () -> xbox.getStartButton(), cannon));
+		cannon.setDefaultCommand(new DefaultCannon(() -> xbox.getBackButton(), () -> xbox.getPOV() == 0, () -> false, cannon));
 		anglers.setDefaultCommand(new DefaultAngler(() -> stick.getRawButton(7), () -> stick.getRawButton(8), anglers));
 	}
 
@@ -106,17 +117,42 @@ public class RobotContainer {
 	}
 
 	public void initializeAutoChooser() {
+		SmartDashboard.putData(chooser);
 		
-		chooser.setDefaultOption("Nothing", null);
+		chooser.setDefaultOption(
+			"Nothing",
+			null
+		);
 		
 		chooser.addOption(
 			"TestPath", 
 			getRamseteCommand(
-				TestPath.getTraj(drivetrain.getConfig())
+				TestPath.getTraj(drivetrain)
+			)
+		);
+
+		chooser.addOption(
+			"SixBallTrenchAuto",
+			new SixBallTrenchAuto(drivetrain, anglers, getRamseteCommand(TestPath.getTraj(drivetrain)), intake, cannon)
+		);
+
+		chooser.addOption("Test Angler Down", 
+		new SequentialCommandGroup(	
+			new ParallelCommandGroup(
+					new RunCommand(() -> anglers.setDartSafely(-.5), anglers).withTimeout(4),
+					new RunCommand(() -> intake.setArm(.4), intake).withTimeout(.2)
+				),
+			new ParallelRaceGroup(
+				new RunCommand(() -> intake.setIntake(-.5), intake),
+				new AutoDrive(120, .5, drivetrain)
+				),
+			new ParallelRaceGroup(
+				new AutoDrive(-120, .5, drivetrain)
+				)
 			)
 		);
 		
-	}
+	} // end of initialize auto chooser
 
 	// Ramsete command for paths
 	public RamseteCommand getRamseteCommand(Trajectory trajectory) {
