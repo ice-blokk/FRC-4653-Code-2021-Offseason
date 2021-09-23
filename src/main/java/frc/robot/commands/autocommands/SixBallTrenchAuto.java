@@ -25,12 +25,12 @@ import frc.robot.subsystems.Intake;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class SixBallTrenchAuto extends SequentialCommandGroup {
   /** Creates a new TestAutoCommand. */
-  public SixBallTrenchAuto(Drivetrain drivetrain, Anglers anglers, RamseteCommand ramseteCommand, Intake intake) {
+  public SixBallTrenchAuto(Drivetrain drivetrain, Anglers anglers, RamseteCommand ramseteCommand, Intake intake, Cannon cannon) {
 
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
-          /*        
+               
         new ParallelCommandGroup(
           new AutoTurn(-30, -.45, drivetrain),
           new RunCommand(() -> anglers.setDartSafely(-.5), anglers).withTimeout(1.25).andThen(() -> anglers.setDartSafely(0))
@@ -40,25 +40,34 @@ public class SixBallTrenchAuto extends SequentialCommandGroup {
           new LimelightAngle(drivetrain.getLimelight(), anglers),
           new LimelightDrive(drivetrain)
         ),
-        */
+        
 
-        /*
+        
         new ParallelCommandGroup(
           //shoot thing
         ),
-        */
+        
 
-        /*
+        
         new ParallelCommandGroup(
           new AutoTurn(0, .5, drivetrain),
-          new RunCommand(() -> anglers.setDartSafely(-.3), anglers).withTimeout(.75).andThen(() -> anglers.setDartSafely(0)),
+          new RunCommand(() -> anglers.setDartSafely(-.3), anglers).withTimeout(1.25).andThen(() -> anglers.setDartSafely(0)),
           new RunCommand(() -> intake.setArm(.65), intake).withTimeout(.2)
         ),
-        */
+        
         new ParallelDeadlineGroup(
           ramseteCommand,
-          new RunCommand(() -> intake.setIntake(-.4))
-        )
+          new RunCommand(() -> intake.setIntake(-.9))
+        ).andThen(() -> intake.setIntake(0)),
+        
+        new AutoTurn(-10, -.5, drivetrain),
+
+        new ParallelCommandGroup(
+          new LimelightAngle(drivetrain.getLimelight(), anglers),
+          new LimelightDrive(drivetrain)
+        ),
+        
+        new BasicShoot(cannon).withTimeout(3)
         
     );
   }
