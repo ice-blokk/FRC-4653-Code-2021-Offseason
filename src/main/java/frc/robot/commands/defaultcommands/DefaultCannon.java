@@ -8,21 +8,24 @@ import frc.robot.subsystems.Cannon;
 
 public class DefaultCannon extends CommandBase {
 
+    public static boolean isFull;
+
     private final Cannon cannon;
 
-    private final BooleanSupplier reverse, forward;
-
+    private final BooleanSupplier reverse, climb, unclimb;
     private boolean sensorWasTriggered;
     private Timer indexTimer;
 
-    public DefaultCannon(BooleanSupplier reverse, BooleanSupplier forward, Cannon cannon) {
+    public DefaultCannon(BooleanSupplier reverse, BooleanSupplier climb, BooleanSupplier unclimb, Cannon cannon) {
         this.cannon = cannon;
         addRequirements(cannon);
         
         this.reverse = reverse;
-        this.forward = forward;
+        this.climb = climb;
+        this.unclimb = unclimb;
 
         indexTimer = new Timer();
+        isFull = false;
     }
 
     @Override
@@ -33,28 +36,40 @@ public class DefaultCannon extends CommandBase {
     public void execute() {
 
         cannon.shoot(false);
-        if(reverse.getAsBoolean()) {
-            cannon.setFeeder(1);
+        if(climb.getAsBoolean()) {
+            cannon.setClimber(-1);
         }
-        else if (forward.getAsBoolean()) {
-            cannon.setFeeder(-1);
+        else if(unclimb.getAsBoolean()) {
+            cannon.setClimber(1);
         }
-        else {
-            if(!cannon.getFrontSensor()) {
-                cannon.setFeeder(-1);
-                indexTimer.reset();
-                indexTimer.start();
-                sensorWasTriggered = true;
+        else  {
+            cannon.setClimber(0);
+            if(reverse.getAsBoolean()) {
+                cannon.setFeeder(.6);
+                isFull = false;
             }
-            else if(sensorWasTriggered) {
-                if(indexTimer.get() > .17) {
-                    indexTimer.stop();
+            else if(cannon.getShooterSensor()) {
+                if(!cannon.getIntakeSensor()) {
+                    cannon.setFeeder(-1);
                     indexTimer.reset();
-                    sensorWasTriggered = false;
+                    indexTimer.start();
+                    sensorWasTriggered = true;
+                }
+                else if (sensorWasTriggered) {
+                    if(indexTimer.get() > .05) {
+                        indexTimer.stop();
+                        indexTimer.reset();
+                        sensorWasTriggered = false;
+                        cannon.setFeeder(0);
+                    }
+                }
+                else {
                     cannon.setFeeder(0);
                 }
+                isFull = false;
             }
             else {
+                isFull = true;
                 cannon.setFeeder(0);
             }
         }
@@ -65,6 +80,7 @@ public class DefaultCannon extends CommandBase {
     public void end(boolean interrupted) {
         cannon.shoot(false);
         cannon.setFeeder(0);
+        cannon.setClimber(0);
     }
 
     @Override
