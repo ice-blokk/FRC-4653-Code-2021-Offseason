@@ -49,14 +49,15 @@ public class LimelightDrive extends CommandBase {
             */
             double turn;
             if(Math.abs(limelight.getX()) > 1.25) {
-                turn = Math.copySign(.23, limelight.getX());
+                turn = Math.copySign(.4, limelight.getX());
+                drivetrain.arcadeDrive(0, turn);
             }
             else {
                 turn = 0;
-                //finished = true;
+                finished = true;
             }
             
-            drivetrain.arcadeDrive(0, turn);
+            
             SmartDashboard.putNumber("Limelight Turn", turn);
         }
 
