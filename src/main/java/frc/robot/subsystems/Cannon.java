@@ -17,7 +17,7 @@ public class Cannon extends SubsystemBase {
 	private final CANSparkMax topShoot, botShoot;
 	private final WPI_TalonSRX feeder, climber;
 
-	private final DigitalInput frontSensor;
+	private final DigitalInput /* frontSensor, */ intakeSensor, shooterSensor;
 
 	public Cannon() {
 		topShoot = new CANSparkMax(Constants.TOP_SHOOTER_ADDRESS, MotorType.kBrushless);
@@ -44,7 +44,9 @@ public class Cannon extends SubsystemBase {
 		climber.configFactoryDefault();
 		climber.setNeutralMode(NeutralMode.Brake);
 
-		frontSensor = new DigitalInput(3);
+		//frontSensor = new DigitalInput(3);
+		intakeSensor = new DigitalInput(3);
+		shooterSensor = new DigitalInput(5);
 	}
 
 	public void setTopShoot(double a) {
@@ -91,8 +93,17 @@ public class Cannon extends SubsystemBase {
 		climber.set(pow);
 	}
 
+	/*
 	public boolean getFrontSensor() {
 		return frontSensor.get();
+	}
+	*/
+
+	public boolean getIntakeSensor() {
+		return intakeSensor.get();
+	}
+	public boolean getShooterSensor() {
+		return shooterSensor.get();
 	}
 
 	public double getTopVelocity() {
@@ -106,6 +117,8 @@ public class Cannon extends SubsystemBase {
 	public void periodic() {
 		//System.out.println("top: " + topShoot.getEncoder().getVelocity() + " bot: " + botShoot.getEncoder().getVelocity());
 		SmartDashboard.putNumber("Bot Speed", getBottomVelocity());
-        SmartDashboard.putNumber("Top Speed", getTopVelocity());
+		SmartDashboard.putNumber("Top Speed", getTopVelocity());
+		SmartDashboard.putBoolean("Intake Sensor", getIntakeSensor());
+		SmartDashboard.putBoolean("Shooter Sensor", getShooterSensor());
 	}
 }
