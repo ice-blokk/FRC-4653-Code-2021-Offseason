@@ -21,9 +21,11 @@ import frc.robot.commands.BasicShoot;
 import frc.robot.commands.LimelightAngle;
 import frc.robot.commands.LimelightDrive;
 import frc.robot.commands.LimelightShoot;
+import frc.robot.commands.PixyFindBall;
 import frc.robot.commands.ResetStuff;
 import frc.robot.commands.SetDartToAngle;
 import frc.robot.commands.autocommands.AutoDrive;
+import frc.robot.commands.autocommands.AutoPixyFindBall;
 import frc.robot.commands.autocommands.AutoSetAngler;
 import frc.robot.commands.autocommands.AutoSetWithinFramePerimeter;
 import frc.robot.commands.autocommands.SixBallTrenchAuto;
@@ -36,6 +38,7 @@ import frc.robot.subsystems.Anglers;
 import frc.robot.subsystems.Cannon;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
+import frc.robot.util.Pixy2Obj;
 
 public class RobotContainer {
 
@@ -55,6 +58,8 @@ public class RobotContainer {
 	private final Cannon cannon;
 	private final Anglers anglers; //no they are not fishermen;
 
+	private final Pixy2Obj pixy;
+
 	private final Joystick leftStick, rightStick, stick;
 	private final XboxController xbox, driver;
 	private SendableChooser<Command> chooser;
@@ -73,6 +78,8 @@ public class RobotContainer {
 		intake = new Intake();
 		cannon = new Cannon();
 		anglers = new Anglers();
+
+		pixy = new Pixy2Obj();
 
 		chooser = new SendableChooser<>();
 		
@@ -113,6 +120,8 @@ public class RobotContainer {
 				new AutoSetWithinFramePerimeter(anglers)
 			)
 		); 
+
+		new JoystickButton(stick, 4).whenHeld(new AutoPixyFindBall(drivetrain, cannon, pixy, 3));
 
 	}
 
