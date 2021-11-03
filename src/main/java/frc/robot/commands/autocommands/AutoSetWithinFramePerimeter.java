@@ -19,7 +19,7 @@ public class AutoSetWithinFramePerimeter extends CommandBase {
     this.anglers = anglers;
     addRequirements(this.anglers);
 
-    defaultPotValue = 125; // The potentiometer value for the angle the cannon needs to be
+    defaultPotValue = 140; // The potentiometer value for the angle the cannon needs to be
   }
 
   @Override

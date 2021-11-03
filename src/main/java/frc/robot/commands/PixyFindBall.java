@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.LinearFilter;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -19,8 +20,10 @@ public class PixyFindBall extends CommandBase {
   private Cannon cannon;
   private Pixy2Obj pixy;
   private PIDController pid;
+  private Timer indexTimer;
+
   private double turn, kP;
-  private boolean found, finished;
+  private boolean found, finished, sensorWasTriggered;
 
   double maxVal = 0;
 
@@ -34,6 +37,7 @@ public class PixyFindBall extends CommandBase {
     finished = false;
     kP = 160;
 
+    indexTimer = new Timer();
     pid = new PIDController(.0025, 0, 0);
     //pid.setSetpoint(160);
   }
@@ -42,6 +46,7 @@ public class PixyFindBall extends CommandBase {
   public void initialize() {
     found = false;
     finished = false;
+    sensorWasTriggered = false;
     kP = 160;
   }
     
@@ -65,8 +70,22 @@ public class PixyFindBall extends CommandBase {
 
     if(found) {
       pixy.updateValues();
-      finished = !cannon.getIntakeSensor() ? true : false;
 
+      if(!cannon.getIntakeSensor()) {
+        cannon.setFeeder(-1);
+        indexTimer.reset();
+        indexTimer.start();
+        sensorWasTriggered = true;
+      }
+      else if (sensorWasTriggered) {
+        if(indexTimer.get() > .05) {
+            indexTimer.stop();
+            indexTimer.reset();
+            sensorWasTriggered = false;
+            cannon.setFeeder(0);
+            finished = true;
+        }
+      }
      
       if(Math.abs(-(pid.calculate(kP))) > Math.abs(maxVal)) {
         maxVal = -(pid.calculate(kP));
@@ -80,14 +99,14 @@ public class PixyFindBall extends CommandBase {
       /* turn 
       better */
       
-      if(turn > .05) {
+      if(turn > .175) {
         turn += .2;
       }
-      else if (turn < -.05) {
+      else if (turn < -.175) {
         turn += -.2;
       }
       
-      drivetrain.arcadeDrive(.6, turn);
+      drivetrain.arcadeDrive(.4, turn);
 
       SmartDashboard.putNumber("Pixy Turn", turn);
       SmartDashboard.putNumber("Pixy MaxVal", maxVal);

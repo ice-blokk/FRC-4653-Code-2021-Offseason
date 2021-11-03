@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.autocommands;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -8,7 +8,7 @@ import frc.robot.util.Limelight;
 /**
  * Command to angle the cannon using the limelight
  */
-public class LimelightAngle extends CommandBase {
+public class AutoLimelightAngle extends CommandBase {
 
     private final Anglers anglers;
 
@@ -16,7 +16,7 @@ public class LimelightAngle extends CommandBase {
 
     boolean finished = false;
 
-    public LimelightAngle(Limelight limelight, Anglers anglers) {
+    public AutoLimelightAngle(Limelight limelight, Anglers anglers) {
         this.anglers = anglers;
         addRequirements(anglers);
 
@@ -32,13 +32,13 @@ public class LimelightAngle extends CommandBase {
     public void execute() {
 
         if(limelight.getValidTarget()) {
-            //if(limelight.getArea() > 2) {
-                if(limelight.getY() < -2) { // this was previously -.75
+            //if(limelight.getArea() > 2) {;
+                if(limelight.getY() < -2) {
                     if(anglers.getDartBottomLimit()) {
                         anglers.setDartSafely(-.3);
                     }
                 }
-                else if(limelight.getY() > -1) { // this was .75
+                else if(limelight.getY() > -1) {
                     if(anglers.getDartTopLimit()) {
                         anglers.setDartSafely(.3);
                     }
@@ -47,12 +47,14 @@ public class LimelightAngle extends CommandBase {
                     anglers.setDartSafely(0);
                     finished = true;
                 }
-            }
-            //else {
-                //Long shot here
-                //finished = anglers.setDartSafely(.22);
             //}
-        //}
+            /*
+            else {
+                //Long shot here
+                finished = anglers.setDartSafely(.22);
+            }
+            */
+        }
 
 
 
@@ -90,6 +92,6 @@ public class LimelightAngle extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return false;
+        return finished;
     }
 }

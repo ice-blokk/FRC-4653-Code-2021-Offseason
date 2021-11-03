@@ -40,7 +40,7 @@ public class DefaultDrive extends CommandBase {
         
 
         //speed = Math.copySign(Math.pow(speed, 3) * .8, speed);
-        rotate = Math.copySign(Math.pow(rotate, 3) * .4, rotate);
+        rotate = Math.copySign(Math.pow(rotate, 2) * .4, rotate);
 
         drivetrain.arcadeDrive(speed, rotate, false);
     }

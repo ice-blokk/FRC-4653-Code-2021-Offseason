@@ -45,8 +45,8 @@ public class Cannon extends SubsystemBase {
 		climber.setNeutralMode(NeutralMode.Brake);
 
 		//frontSensor = new DigitalInput(3);
-		intakeSensor = new DigitalInput(3);
-		shooterSensor = new DigitalInput(5);
+		intakeSensor = new DigitalInput(Constants.INTAKE_BALL_SENSOR_ADDRESS);
+		shooterSensor = new DigitalInput(Constants.SHOOTER_BALL_SENSOR_ADDRESS);
 	}
 
 	public void setTopShoot(double a) {

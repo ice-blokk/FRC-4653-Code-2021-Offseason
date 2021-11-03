@@ -38,7 +38,7 @@ public class Anglers extends SubsystemBase {
 	}
 	public boolean setDartSafely(double pow) {
 		// Top Dart Limit (hall effect sensor) is broken rn
-		if((pow > 0 && (/* getDartTopLimit() */ pot.get() < 140)) || (pow < 0 && getDartBottomLimit())) {
+		if((pow > 0 && (/* getDartTopLimit() */ pot.get() < 140)) || (pow < 0 && getDartBottomLimit() && (getDartPot() > 12))) {
 			setDart(pow);
 			return true;
 		}
@@ -53,7 +53,7 @@ public class Anglers extends SubsystemBase {
 	public boolean setLeadSafely(double pow) {
 		if((pow > 0 && !getLeadBackLimit()) || (pow < 0 && !getLeadFrontLimit())) {
 			setLead(pow);
-			return true;
+			return true;	
 		}
 		else {
 			setLead(0);

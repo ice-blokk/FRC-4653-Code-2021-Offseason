@@ -25,10 +25,13 @@ import frc.robot.commands.PixyFindBall;
 import frc.robot.commands.ResetStuff;
 import frc.robot.commands.SetDartToAngle;
 import frc.robot.commands.autocommands.AutoDrive;
+import frc.robot.commands.autocommands.AutoLimelightAngle;
 import frc.robot.commands.autocommands.AutoPixyFindBall;
 import frc.robot.commands.autocommands.AutoSetAngler;
 import frc.robot.commands.autocommands.AutoSetWithinFramePerimeter;
 import frc.robot.commands.autocommands.SixBallTrenchAuto;
+import frc.robot.commands.autocommands.StartFrontShootThreeBallsThenMoveBackward;
+import frc.robot.commands.autocommands.StartRightShootThreeBallsThenMoveBackward;
 import frc.robot.commands.autopaths.TestPath;
 import frc.robot.commands.defaultcommands.DefaultAngler;
 import frc.robot.commands.defaultcommands.DefaultCannon;
@@ -95,7 +98,10 @@ public class RobotContainer {
 									drivetrain));   
 		intake.setDefaultCommand(new DefaultIntake(() -> xbox.getXButton(), () -> xbox.getBButton(),
 												   () -> xbox.getYButton(), () -> xbox.getAButton(), intake));
-		cannon.setDefaultCommand(new DefaultCannon(() -> xbox.getBackButton(), () -> xbox.getPOV() == 0, () -> false, cannon));
+		cannon.setDefaultCommand(new DefaultCannon(() -> xbox.getBackButton(),
+													() -> xbox.getStartButton(),
+													() -> xbox.getPOV() == 0,
+													() -> xbox.getPOV() == 180, cannon));
 		anglers.setDefaultCommand(new DefaultAngler(() -> stick.getRawButton(7), () -> stick.getRawButton(8), anglers));
 	}
 
@@ -109,7 +115,7 @@ public class RobotContainer {
 				new LimelightDrive(drivetrain))
 		);
 
-		new JoystickButton(stick, 3).whenHeld(new ResetStuff(drivetrain));
+		new JoystickButton(stick, 4).whenHeld(new ResetStuff(drivetrain));
 
 		new JoystickButton(xbox, 5).whenHeld(new LimelightShoot(cannon, drivetrain));
 
@@ -121,13 +127,15 @@ public class RobotContainer {
 			)
 		); 
 
-		new JoystickButton(stick, 4).whenHeld(new AutoPixyFindBall(drivetrain, cannon, pixy, 3));
+		new JoystickButton(stick, 6).whenHeld(new AutoPixyFindBall(drivetrain, cannon, pixy, 3));
+
+		new JoystickButton(stick, 3).whenHeld(new PixyFindBall(drivetrain, cannon, pixy));
+
+		new JoystickButton(stick, 9).whenHeld(new AutoLimelightAngle(drivetrain.getLimelight(), anglers));
 
 	}
 
 	public void initializeAutoChooser() {
-		SmartDashboard.putData(chooser);
-		
 		chooser.setDefaultOption(
 			"Nothing",
 			null
@@ -142,24 +150,32 @@ public class RobotContainer {
 
 		chooser.addOption(
 			"SixBallTrenchAuto",
-			new SixBallTrenchAuto(drivetrain, anglers, getRamseteCommand(TestPath.getTraj(drivetrain)), intake, cannon)
+			new SixBallTrenchAuto(drivetrain, anglers, getRamseteCommand(TestPath.getTraj(drivetrain)), intake, cannon, pixy)
 		);
 
-		chooser.addOption("Test Angler Down", 
-		new SequentialCommandGroup(	
-			new ParallelCommandGroup(
-					new RunCommand(() -> anglers.setDartSafely(-.5), anglers).withTimeout(4),
-					new RunCommand(() -> intake.setArm(.4), intake).withTimeout(.2)
-				),
-			new ParallelRaceGroup(
-				new RunCommand(() -> intake.setIntake(-.5), intake),
-				new AutoDrive(120, .5, drivetrain)
-				),
-			new ParallelRaceGroup(
-				new AutoDrive(-120, .5, drivetrain)
-				)
-			)
+		chooser.addOption(
+			"Start RIGHT Shoot Three Balls Then Move Backward", new StartRightShootThreeBallsThenMoveBackward(drivetrain, anglers, cannon, intake)
 		);
+
+		chooser.addOption(
+			"Start FRONT Shoot Three Balls Then Move Backward", new StartFrontShootThreeBallsThenMoveBackward(drivetrain, anglers, cannon, intake)
+		);
+
+		chooser.addOption(
+			"Move Forward", 
+			new RunCommand(() -> drivetrain.arcadeDrive(-.4, 0))
+			.withTimeout(2)
+			.andThen(() -> drivetrain.arcadeDrive(0, 0), drivetrain)
+		);
+
+		chooser.addOption(
+			"Move Backward", 
+			new RunCommand(() -> drivetrain.arcadeDrive(.4, 0))
+			.withTimeout(2)
+			.andThen(() -> drivetrain.arcadeDrive(0, 0), drivetrain)
+		);
+
+		SmartDashboard.putData(chooser);
 		
 	} // end of initialize auto chooser
 
@@ -187,5 +203,9 @@ public class RobotContainer {
 		return chooser.getSelected();
 	
 	} // end of auto command method
+
+	public Command getResetCommand() {
+		return new ResetStuff(drivetrain);
+	}
 
 } // end of class

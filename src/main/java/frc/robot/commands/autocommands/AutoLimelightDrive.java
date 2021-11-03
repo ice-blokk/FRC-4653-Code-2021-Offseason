@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.autocommands;
 
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -10,7 +10,7 @@ import frc.robot.util.Limelight;
  * Command to turn the drivetrain using the limelight
  */
 
-public class LimelightDrive extends CommandBase {
+public class AutoLimelightDrive extends CommandBase {
 
     private final Drivetrain drivetrain;
 
@@ -19,13 +19,13 @@ public class LimelightDrive extends CommandBase {
     boolean finished;
     PIDController pid;
 
-    public LimelightDrive(Drivetrain drivetrain) {
+    public AutoLimelightDrive(Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
         addRequirements(drivetrain);
 
         limelight = drivetrain.getLimelight();
         finished = false;
-        pid = new PIDController(.04, 0, 0);
+        pid = new PIDController(.35, .01, .01);
     }
 
     @Override
@@ -35,22 +35,33 @@ public class LimelightDrive extends CommandBase {
 
     @Override
     public void execute() {
-            
+        /* if(limelight.getValidTarget()) {
+            double turn = -pid.calculate(limelight.getX(), 0) * .1;
+            if(Math.abs(turn) > .8) {
+                turn = Math.copySign(turn, .75);
+            }
+            else if(Math.abs(turn) < .2) {
+                turn = Math.copySign(turn, .2);
+            }
+            else if(Math.abs(limelight.getX()) < 2) {
+                finished = true;
+            }
+            */
             double pidTurn = -pid.calculate(limelight.getX());
 
-            if(Math.abs(pidTurn) < .175) {
+            if(Math.abs(pidTurn) < .1) {
                 if(pidTurn < 0) {
-                    pidTurn -= .20;
+                    pidTurn -= .15;
                 }
                 else {
-                    pidTurn += .20;
+                    pidTurn += .15;
                 }
             }
 
             if(limelight.getValidTarget()) {
                 drivetrain.arcadeDrive(0, pidTurn);
             }
-            SmartDashboard.putNumber("Limelight pid turn val", pidTurn);
+            
         }
 
     @Override
@@ -60,6 +71,6 @@ public class LimelightDrive extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return false;
+        return limelight.getX() < .5 && limelight.getX() > -.5;
     }
 }

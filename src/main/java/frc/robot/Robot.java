@@ -43,13 +43,15 @@ public class Robot extends TimedRobot {
 	public void autonomousInit() {
 		if(robotContainer.getAutomonousCommand() != null) {
 			robotContainer.getAutomonousCommand().schedule();
+
+			// Reset Odometry and Gyro
+			//robotContainer.getResetCommand().schedule();
 		}
 	}
 
 	@Override
 	public void autonomousPeriodic() {
 		CommandScheduler.getInstance().run();
-		
 	}
 
 	@Override

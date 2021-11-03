@@ -9,7 +9,7 @@ public class AutoDrive extends CommandBase {
 
     private final double power, distance, startEncoder;
 
-    public AutoDrive(double distance, double power, Drivetrain drivetrain) {
+    public AutoDrive(double power, double distance, Drivetrain drivetrain) {
         this.drivetrain = drivetrain;
         addRequirements(drivetrain);
 

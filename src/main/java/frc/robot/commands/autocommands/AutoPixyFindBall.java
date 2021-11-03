@@ -5,6 +5,7 @@
 package frc.robot.commands.autocommands;
 
 import edu.wpi.first.wpilibj.LinearFilter;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -20,8 +21,10 @@ public class AutoPixyFindBall extends CommandBase {
   private Pixy2Obj pixy;
   private PIDController pid;
   private double turn, kP, ballCount;
-  private boolean found, finished;
+  private boolean found, finished, tempVar, sensorWasTriggered;
   private int currentBallCount;
+  private Timer indexTimer;
+  
 
   double maxVal = 0;
 
@@ -30,7 +33,7 @@ public class AutoPixyFindBall extends CommandBase {
     this.drivetrain = drivetrain;
     this.cannon = cannon;
     this.pixy = pixy;
-
+    
     this.ballCount = ballCount;
 
     turn = 0; 
@@ -38,8 +41,10 @@ public class AutoPixyFindBall extends CommandBase {
     finished = false;
     kP = 160;
     currentBallCount = 0;
+    tempVar = true;
+    sensorWasTriggered = false;
     
-
+    indexTimer = new Timer();
     pid = new PIDController(.0025, 0, 0);
   }
 
@@ -49,6 +54,8 @@ public class AutoPixyFindBall extends CommandBase {
     found = false;
     finished = false;
     kP = 160;
+    tempVar = true;
+    sensorWasTriggered = false;
   }
     
 
@@ -71,9 +78,34 @@ public class AutoPixyFindBall extends CommandBase {
 
     if(found) {
       pixy.updateValues();
-  
-      currentBallCount += !cannon.getIntakeSensor() ? 1 : 0;
-      finished = currentBallCount >= ballCount ? true : false;
+
+        if(!cannon.getIntakeSensor() && tempVar == true){
+          
+          if(!cannon.getIntakeSensor() && !sensorWasTriggered) {
+            cannon.setFeeder(-1);
+            indexTimer.reset();
+            indexTimer.start();
+            sensorWasTriggered = true;
+          }
+          else if (sensorWasTriggered) {
+            if(indexTimer.get() > .05) {
+                indexTimer.stop();
+                indexTimer.reset();
+                sensorWasTriggered = false;
+                cannon.setFeeder(0);
+            }
+
+          tempVar = false;
+          currentBallCount += 1;
+        }
+        
+        else if(cannon.getIntakeSensor() == true && tempVar == false){
+          tempVar = true;
+        }
+
+      }
+      //currentBallCount += !cannon.getIntakeSensor() ? 1 : 0;
+      //finished = currentBallCount >= ballCount ? true : false;
      
       if(Math.abs(-(pid.calculate(kP))) > Math.abs(maxVal)) {
         maxVal = -(pid.calculate(kP));
@@ -94,10 +126,11 @@ public class AutoPixyFindBall extends CommandBase {
         turn += -.2;
       }
       
-      drivetrain.arcadeDrive(.45, turn);
+      drivetrain.arcadeDrive(0, 0);
 
       SmartDashboard.putNumber("Pixy Turn", turn);
       SmartDashboard.putNumber("Pixy MaxVal", maxVal);
+      SmartDashboard.putNumber("Current Ball Count", currentBallCount);
   }
 
 
