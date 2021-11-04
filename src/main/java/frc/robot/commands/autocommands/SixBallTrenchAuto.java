@@ -57,14 +57,14 @@ public class SixBallTrenchAuto extends SequentialCommandGroup {
         ).withTimeout(2),
 
         // shoot here
-        new BasicShoot(cannon).withTimeout(3),
+        new BasicShoot(cannon).withTimeout(3.5),
 
         // put cannon all the way down, turn towards trench, put down intake
         new ParallelCommandGroup(
           new RunCommand(() -> anglers.setDartSafely(-.3), anglers).withTimeout(2.75).andThen(() -> anglers.setDartSafely(0)),
-          new AutoTurn(-10, .45, drivetrain),
+          new AutoTurn(-7, .45, drivetrain),
           new RunCommand(() -> intake.setArm(.5), intake).withTimeout(.2)
-        ),
+        ).andThen(() -> intake.setArm(0)),
       
         
         // stop intake (just in case it doesn't stop int he parallel)
@@ -72,7 +72,7 @@ public class SixBallTrenchAuto extends SequentialCommandGroup {
       
         // drive towards trench
         new RunCommand(() -> drivetrain.arcadeDrive(.4, 0), drivetrain)
-        .withTimeout(1.8)
+        .withTimeout(2.25)
         .andThen(() -> drivetrain.arcadeDrive(0, 0)),
 
         // intake 3 balls using pixy
@@ -87,14 +87,22 @@ public class SixBallTrenchAuto extends SequentialCommandGroup {
         ),
 
         // drive forward to see other final ball
-        new RunCommand(() -> drivetrain.arcadeDrive(.4, 0), drivetrain)
-        .withTimeout(2.0)
-        .andThen(() -> drivetrain.arcadeDrive(0, 0)),
+        /*
+        new ParallelCommandGroup(
+          new RunCommand(() -> cannon.setFeeder(-.6), cannon).withTimeout(.2).andThen(() -> cannon.setFeeder(0)), //intake cus dumb
+          new RunCommand(() -> drivetrain.arcadeDrive(.4, 0), drivetrain)
+          .withTimeout(1.50)    
+          .andThen(() -> drivetrain.arcadeDrive(0, 0))
+        ),
+        */
 
         new ParallelDeadlineGroup(
           new PixyFindBall(drivetrain, cannon, pixy),
           new RunCommand(() -> intake.setIntake(-1), intake)
-        ).andThen(() -> intake.setIntake(0)),
+        ),
+
+
+        new RunCommand(() -> intake.setIntake(0), intake).withTimeout(.1),
 
 
         
